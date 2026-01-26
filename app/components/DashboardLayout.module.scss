@@ -1,3 +1,157 @@
+@import '../styles/variables.scss';
+
+.dashboardContainer {
+    display: flex;
+    height: 100vh;
+    background-color: $gray-100;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: $z-50;
+    width: 16rem; // w-64
+    background-color: white;
+    border-right: 1px solid $gray-200;
+    transform: translateX(-100%);
+    transition: transform 300ms ease-in-out;
+
+    @media (min-width: $breakpoint-lg) {
+        position: static;
+        transform: translateX(0);
+        transition: none;
+    }
+
+    &.open {
+        transform: translateX(0);
+    }
+
+    .sidebarContent {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+
+        .logoSection {
+            padding: $spacing-6;
+
+            .logoWrapper {
+                position: relative;
+                width: 100%;
+                max-width: 32rem; // max-w-lg
+
+                .logo {
+                    width: 144px;
+                    height: 30px;
+                }
+            }
+        }
+
+        .switchOrgSection {
+            padding: $spacing-4 $spacing-6;
+
+            .switchOrgButton {
+                display: flex;
+                align-items: center;
+                gap: $spacing-2;
+                width: 100%;
+                color: $secondary;
+                background: none;
+                border: none;
+                padding: 0;
+                cursor: pointer;
+
+                .switchOrgContent {
+                    display: flex;
+                    align-items: center;
+                    gap: $spacing-2;
+                }
+            }
+        }
+
+        .dashboardButtonSection {
+            padding: $spacing-4 $spacing-6;
+            margin-bottom: $spacing-4;
+
+            .dashboardButton {
+                display: flex;
+                align-items: center;
+                gap: $spacing-2;
+                width: 100%;
+                color: $text-muted;
+                background: none;
+                border: none;
+                padding: 0;
+                cursor: pointer;
+
+                .dashboardButtonContent {
+                    display: flex;
+                    align-items: center;
+                    gap: $spacing-2;
+                }
+            }
+        }
+
+        .navigation {
+            flex: 1;
+            overflow-y: auto;
+            padding: $spacing-4 0;
+
+            .navContent {
+                display: flex;
+                flex-direction: column;
+                gap: $spacing-6;
+
+                .navSection {
+                    .navSectionTitle {
+                        font-size: $text-xs;
+                        padding: 0 $spacing-6;
+                        font-weight: $font-semibold;
+                        color: $gray-400;
+                        text-transform: uppercase;
+                        margin-bottom: $spacing-3;
+                    }
+
+                    .navList {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.25rem; // space-y-1
+                    }
+                }
+            }
+        }
+
+        .footerSection {
+            padding: $spacing-4;
+            border-top: 1px solid $gray-200;
+
+            .logoutLink {
+                display: flex;
+                align-items: center;
+                gap: $spacing-3;
+                padding: $spacing-2 $spacing-3;
+                border-radius: $radius-md;
+                font-size: $text-sm;
+                color: $text-muted;
+                text-decoration: none;
+                transition: $transition-colors;
+
+                &:hover {
+                    background-color: $gray-100;
+                }
+            }
+
+            .versionText {
+                font-size: $text-xs;
+                color: $gray-400;
+                margin-top: $spacing-6;
+                padding: 0 $spacing-3;
+            }
+        }
+    }
+}
+
 .nav-link {
     display: flex;
     align-items: center;
@@ -5,6 +159,7 @@
     padding: 12px 24px;
     transition: all 0.3s ease;
     color: #8b9bba;
+    text-decoration: none;
 
     &:hover {
         background-color: #f3fcfc;
@@ -16,10 +171,211 @@
         color: #213F7D;
         border-left: 4px solid #39CDCC;
         font-weight: 500;
-        
 
         &.alt-active {
             background-color: rgba(57, 205, 204, 0.1);
+        }
+    }
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: $z-40;
+
+    @media (min-width: $breakpoint-lg) {
+        display: none;
+    }
+}
+
+.mainContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .header {
+        background-color: white;
+        border-bottom: 1px solid $gray-200;
+        padding: $spacing-4 $spacing-4;
+
+        @media (min-width: $breakpoint-lg) {
+            padding: $spacing-4 $spacing-8;
+        }
+
+        .headerContent {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .mobileMenuButton {
+                padding: $spacing-2;
+                color: $text-muted;
+                background: none;
+                border: none;
+                cursor: pointer;
+
+                @media (min-width: $breakpoint-lg) {
+                    display: none;
+                }
+
+                .menuIcon {
+                    width: $spacing-6;
+                    height: $spacing-6;
+                }
+            }
+
+            .searchContainer {
+                flex: 1;
+                display: none;
+                max-width: 28rem; // max-w-md
+                margin: 0 $spacing-4;
+
+                @media (min-width: $breakpoint-md) {
+                    display: flex;
+                    margin: 0 $spacing-6;
+                }
+
+                @media (min-width: $breakpoint-lg) {
+                    margin: 0 $spacing-8;
+                }
+
+                .searchWrapper {
+                    display: flex;
+                    align-items: center;
+                    width: 100%;
+
+                    .searchInput {
+                        flex: 1;
+                        padding: $spacing-3 $spacing-4;
+                        padding-left: $spacing-4;
+                        padding-right: $spacing-4;
+                        font-size: $text-sm;
+                        border: 1px solid $border-input;
+                        border-top-left-radius: $radius-lg;
+                        border-bottom-left-radius: $radius-lg;
+                        outline: none;
+                        transition: $transition-default;
+
+                        &:focus {
+                            border-color: transparent;
+                            box-shadow: 0 0 0 2px $primary;
+                        }
+
+                        &::placeholder {
+                            color: $text-placeholder;
+                        }
+                    }
+
+                    .searchButton {
+                        background-color: $search-bg;
+                        padding: 13px $spacing-5;
+                        border-top-right-radius: $radius-lg;
+                        border-bottom-right-radius: $radius-lg;
+                        transition: $transition-colors;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border: none;
+                        cursor: pointer;
+
+                        &:hover {
+                            background-color: $search-bg-hover;
+                        }
+
+                        .searchIcon {
+                            width: $spacing-5;
+                            height: $spacing-5;
+                            color: white;
+                        }
+                    }
+                }
+            }
+
+            .headerRight {
+                display: flex;
+                align-items: center;
+                gap: $spacing-4;
+
+                @media (min-width: $breakpoint-lg) {
+                    gap: $spacing-6;
+                }
+
+                .docsLink {
+                    text-decoration: underline;
+                    color: $secondary;
+
+                    @media (max-width: ($breakpoint-lg - 1px)) {
+                        display: none;
+                    }
+                }
+
+                .notificationButton {
+                    position: relative;
+                    padding: $spacing-2;
+                    color: $text-muted;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                }
+
+                .userSection {
+                    display: flex;
+                    align-items: center;
+                    gap: $spacing-2;
+
+                    .avatar {
+                        width: 2.5rem; // w-10
+                        height: 2.5rem; // h-10
+                        border-radius: $radius-full;
+                        background-color: $gray-200;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+
+                        .avatarText {
+                            color: $text-muted;
+                        }
+                    }
+
+                    .userName {
+                        display: none;
+                        font-weight: $font-medium;
+                        color: $secondary;
+
+                        @media (min-width: $breakpoint-lg) {
+                            display: block;
+                        }
+                    }
+
+                    .dropdownButton {
+                        color: $text-muted;
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        padding: 0;
+                    }
+                }
+            }
+        }
+    }
+
+    .mainContentArea {
+        flex: 1;
+        overflow-y: auto;
+        background-color: #fbfbfb;
+        padding: $spacing-4;
+
+        @media (min-width: $breakpoint-md) {
+            padding: $spacing-10;
+        }
+
+        @media (min-width: $breakpoint-lg) {
+            padding: 60px;
         }
     }
 }

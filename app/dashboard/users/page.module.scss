@@ -1,0 +1,687 @@
+@import '../../styles/variables.scss';
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-6;
+}
+
+.pageTitle {
+    font-size: $text-2xl;
+    font-weight: $font-medium;
+    color: $text-primary;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-6;
+
+    @media (min-width: $breakpoint-md) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: $breakpoint-lg) {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.statCard {
+    background-color: white;
+    padding: $spacing-6;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-md;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+    }
+
+    .statContent {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-3;
+
+        .iconWrapper {
+            width: 3rem; // w-12
+            height: 3rem; // h-12
+            border-radius: $radius-full;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .icon {
+                font-size: $text-2xl;
+            }
+        }
+
+        .statInfo {
+            .statTitle {
+                font-size: $text-sm;
+                color: $text-primary;
+                font-weight: $font-medium;
+                text-transform: uppercase;
+                margin-bottom: $spacing-3;
+            }
+
+            .statValue {
+                font-size: $text-2xl;
+                font-weight: $font-bold;
+                color: $text-primary;
+            }
+        }
+    }
+}
+
+.purple {
+    background-color: #fce8ff;
+}
+
+.violet {
+    background-color: #eee8ff;
+}
+
+.orange {
+    background-color: #feefec;
+}
+
+.pink {
+    background-color: $pink-100;
+}
+
+.tableContainer {
+    background-color: white;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-lg;
+    overflow: hidden;
+}
+
+.loadingContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 350px;
+    padding: $spacing-8;
+    color: $text-primary;
+    text-align: center;
+
+    @media (min-width: $breakpoint-lg) {
+        display: none;
+    }
+}
+
+.skeletonContainer {
+    overflow-x: auto;
+
+    .skeletonWrapper {
+        position: relative;
+        min-height: 550px;
+    }
+}
+
+.mobileCardView {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-4;
+    padding: $spacing-4;
+    min-height: 350px;
+
+    @media (min-width: $breakpoint-lg) {
+        display: none;
+    }
+
+    .noResults {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+
+        .noResultsText {
+            text-align: center;
+
+            .noResultsMessage {
+                color: $gray-500;
+                font-size: $text-sm;
+            }
+        }
+    }
+
+    .mobileCard {
+        background-color: white;
+        border: 1px solid $gray-200;
+        border-radius: $radius-lg;
+        padding: $spacing-4;
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-3;
+
+        .cardHeader {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+
+            .cardUserInfo {
+                flex: 1;
+
+                .cardUsername {
+                    font-weight: $font-semibold;
+                    color: $secondary;
+                }
+
+                .cardEmail {
+                    font-size: $text-sm;
+                    color: $text-primary;
+                }
+            }
+
+            .cardMenuButton {
+                position: relative;
+                color: $gray-400;
+                padding: $spacing-1;
+                background: none;
+                border: none;
+                cursor: pointer;
+                transition: color 0.2s ease;
+
+                &:hover {
+                    color: $text-primary;
+                }
+
+                .menuIcon {
+                    width: $spacing-5;
+                    height: $spacing-5;
+                }
+            }
+        }
+
+        .cardDetails {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: $spacing-3;
+            font-size: $text-sm;
+
+            .detailItem {
+                .detailLabel {
+                    font-size: $text-xs;
+                    color: $gray-500;
+                }
+
+                .detailValue {
+                    color: $text-primary;
+                }
+            }
+        }
+    }
+}
+
+.tableWrapper {
+    position: relative;
+    overflow-x: auto;
+}
+
+.filterPanel {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: $z-50;
+    background-color: white;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-xl;
+    border: 1px solid $gray-200;
+    padding: $spacing-6;
+    width: 20rem; // w-80
+
+    .filterContent {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-4;
+
+        .filterField {
+            .filterLabel {
+                display: block;
+                font-size: $text-xs;
+                font-weight: $font-medium;
+                color: $text-primary;
+                margin-bottom: $spacing-2;
+            }
+
+            .filterInput,
+            .filterSelect {
+                width: 100%;
+                padding: $spacing-2 $spacing-3;
+                border: 1px solid $border-gray-300;
+                border-radius: $radius-md;
+                font-size: $text-sm;
+                color: $text-primary;
+                outline: none;
+                transition: $transition-default;
+
+                &:focus {
+                    border-color: transparent;
+                    box-shadow: 0 0 0 2px $primary;
+                }
+
+                &::placeholder {
+                    color: $gray-400;
+                }
+            }
+
+            .dateInputWrapper {
+                position: relative;
+
+                .dateInput {
+                    width: 100%;
+                    padding: $spacing-2 $spacing-3;
+                    border: 1px solid $border-gray-300;
+                    border-radius: $radius-md;
+                    font-size: $text-sm;
+                    color: $text-primary;
+                    outline: none;
+                    transition: $transition-default;
+
+                    &:focus {
+                        border-color: transparent;
+                        box-shadow: 0 0 0 2px $primary;
+                    }
+                }
+
+                .dateIcon {
+                    position: absolute;
+                    right: $spacing-4;
+                    top: $spacing-2;
+                }
+            }
+        }
+
+        .filterActions {
+            display: flex;
+            gap: $spacing-3;
+            padding-top: $spacing-2;
+
+            .resetButton {
+                flex: 1;
+                padding: $spacing-2 $spacing-4;
+                border: 1px solid $primary;
+                color: $text-primary;
+                border-radius: $radius-md;
+                font-size: $text-sm;
+                font-weight: $font-medium;
+                background: none;
+                cursor: pointer;
+                transition: $transition-colors;
+
+                &:hover {
+                    background-color: $gray-100;
+                }
+            }
+
+            .applyButton {
+                flex: 1;
+                padding: $spacing-2 $spacing-4;
+                background-color: $primary;
+                color: white;
+                border-radius: $radius-md;
+                font-size: $text-sm;
+                font-weight: $font-medium;
+                border: none;
+                cursor: pointer;
+                transition: $transition-colors;
+
+                &:hover {
+                    background-color: #2fb3b3;
+                }
+            }
+        }
+    }
+}
+
+.table {
+    width: 100%;
+    display: none;
+
+    @media (min-width: $breakpoint-lg) {
+        display: table;
+    }
+
+    .tableHead {
+        .tableRow {
+            .tableHeader {
+                padding: $spacing-3 $spacing-6;
+                text-align: left;
+                font-size: $text-xs;
+                font-weight: $font-semibold;
+                color: $text-primary;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+
+                &:first-child {
+                    padding: $spacing-5 $spacing-6;
+                }
+
+                .headerContent {
+                    display: flex;
+                    align-items: center;
+                    gap: $spacing-2;
+
+                    &.whitespaceNowrap {
+                        white-space: nowrap;
+                    }
+
+                    .filterButton {
+                        cursor: pointer;
+                        background: none;
+                        border: none;
+                        padding: 0;
+                        transition: opacity 0.2s ease;
+
+                        &:hover {
+                            opacity: 0.7;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .tableBody {
+        background-color: white;
+
+        .tableRow {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background-color: $gray-100;
+            }
+
+            .tableCell {
+                padding: $spacing-4 $spacing-6;
+                white-space: nowrap;
+                font-size: $text-sm;
+                color: $text-primary;
+
+                &:first-child {
+                    padding: $spacing-6 $spacing-6;
+                }
+
+                &.actionsCell {
+                    text-align: right;
+                    position: relative;
+
+                    .menuButton {
+                        color: $gray-400;
+                        padding: $spacing-1;
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        transition: color 0.2s ease;
+
+                        &:hover {
+                            color: $text-primary;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.contextMenu {
+    position: absolute;
+    right: 0;
+    width: 12rem; // w-48
+    background-color: white;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-lg;
+    border: 1px solid $gray-200;
+    z-index: $z-50;
+
+    &.top {
+        bottom: 100%;
+        margin-bottom: $spacing-2;
+    }
+
+    &.bottom {
+        top: 0;
+        margin-top: $spacing-2;
+    }
+
+    .menuContent {
+        padding: $spacing-3 0;
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-3;
+
+        .menuItem {
+            width: 100%;
+            text-align: left;
+            padding: $spacing-2 $spacing-4;
+            font-size: $text-sm;
+            color: $text-primary;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: $spacing-3;
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background-color: $gray-100;
+            }
+        }
+    }
+}
+
+.contextMenuDesktop {
+    position: absolute;
+    right: $spacing-6;
+    width: 12rem; // w-48
+    background-color: white;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-lg;
+    border: 1px solid $gray-200;
+    z-index: $z-50;
+
+    &.top {
+        bottom: 100%;
+        margin-bottom: $spacing-2;
+    }
+
+    &.bottom {
+        top: 0;
+        margin-top: $spacing-2;
+    }
+
+    .menuContent {
+        padding: $spacing-3 0;
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-3;
+
+        .menuItem {
+            width: 100%;
+            text-align: left;
+            padding: $spacing-2 $spacing-4;
+            font-size: $text-sm;
+            color: $text-primary;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: $spacing-3;
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background-color: $gray-100;
+            }
+        }
+    }
+}
+
+.statusBadge {
+    display: inline-block;
+    padding: $spacing-2 $spacing-3;
+    border-radius: $radius-full;
+    font-size: $text-xs;
+    font-weight: $font-medium;
+
+    &.active {
+        background-color: $green-100;
+        color: $green-text;
+    }
+
+    &.inactive {
+        background-color: $gray-100;
+        color: $text-primary;
+    }
+
+    &.pending {
+        background-color: $yellow-bg;
+        color: $yellow-text;
+    }
+
+    &.blacklisted {
+        background-color: $red-bg;
+        color: $red-text;
+    }
+}
+
+.emptyState {
+    padding: $spacing-6;
+
+    .emptyStateContent {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 550px;
+
+        .emptyStateMessage {
+            color: $gray-500;
+            font-size: $text-sm;
+        }
+    }
+}
+
+.pagination {
+    padding: $spacing-4;
+    margin-top: -$spacing-5;
+    color: $text-primary;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-4;
+    align-items: center;
+    justify-content: space-between;
+
+    @media (min-width: $breakpoint-sm) {
+        flex-direction: row;
+    }
+
+    @media (min-width: $breakpoint-lg) {
+        padding: $spacing-4 $spacing-6;
+    }
+
+    .paginationInfo {
+        display: flex;
+        align-items: center;
+        gap: $spacing-2;
+
+        .infoText {
+            font-size: $text-sm;
+            color: $text-primary;
+        }
+
+        .pageSelect {
+            color: $text-primary;
+            padding: $spacing-2 $spacing-4;
+            background-color: #e5e8ee;
+            border-radius: $radius-md;
+            font-size: $text-sm;
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+    }
+
+    .paginationControls {
+        display: flex;
+        align-items: center;
+        gap: $spacing-1;
+
+        @media (min-width: $breakpoint-sm) {
+            gap: $spacing-2;
+        }
+
+        .paginationButton {
+            padding: $spacing-2;
+            border: 1px solid $border-gray-300;
+            background-color: #e5e8ee;
+            border-radius: $radius-md;
+            font-size: $text-sm;
+            cursor: pointer;
+            transition: $transition-colors;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            &:hover:not(:disabled) {
+                background-color: $gray-100;
+            }
+        }
+
+        .pageNumbers {
+            display: flex;
+            align-items: center;
+            gap: $spacing-1;
+
+            .pageButton {
+                padding: $spacing-1 $spacing-2;
+                border-radius: $radius-md;
+                font-size: $text-sm;
+                border: none;
+                background: none;
+                cursor: pointer;
+                transition: $transition-colors;
+
+                @media (min-width: $breakpoint-sm) {
+                    padding: $spacing-1 $spacing-3;
+                }
+
+                &.active {
+                    background-color: $secondary;
+                    color: white;
+                }
+
+                &:not(.active) {
+                    color: $text-primary;
+                }
+            }
+
+            .ellipsis {
+                padding: $spacing-1 $spacing-2;
+                font-size: $text-sm;
+
+                @media (min-width: $breakpoint-sm) {
+                    padding: $spacing-1 $spacing-2;
+                }
+            }
+
+            .lastPageButton {
+                padding: $spacing-2;
+                color: $text-primary;
+                background-color: #e5e8ee;
+                border-radius: $radius-md;
+                font-size: $text-sm;
+                border: none;
+                cursor: pointer;
+            }
+        }
+    }
+}

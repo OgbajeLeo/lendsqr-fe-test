@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import loginSVG from '@/app/assets/images/signIn.svg'
 import logoSVG from '@/app/assets/images/logoSVG.svg'
+import styles from './page.module.scss';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -72,36 +73,36 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex">
+        <div className={styles.loginContainer}>
             {/* Left Side - Illustration */}
-            <div className="hidden lg:flex lg:w-1/2 bg-[#fefefb] relative overflow-hidden">
-                <div className="w-full h-full flex flex-col p-8">
+            <div className={styles.leftSide}>
+                <div className={styles.leftContent}>
                     {/* Logo */}
-                    <div className="mb-4 pl-[70px] pt-6">
-                        <Image className='object-contain' src={logoSVG} alt="Login Illustration" />
+                    <div className={styles.logoContainer}>
+                        <Image className={styles.logo} src={logoSVG} alt="Login Illustration" />
                     </div>
 
                     {/* Illustration - Stylized character with geometric shapes */}
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="relative w-full max-w-lg">
-                            <Image className='w-full' src={loginSVG} alt="Login Illustration" width={500} height={500} />
+                    <div className={styles.illustrationContainer}>
+                        <div className={styles.illustrationWrapper}>
+                            <Image className={styles.illustration} src={loginSVG} alt="Login Illustration" width={500} height={500} />
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Right Side - Login Form */}
-            <div className="flex-1 flex justify-center items-center p-8 bg-white">
-                <div className="w-full max-w-md">
+            <div className={styles.rightSide}>
+                <div className={styles.formContainer}>
                     {/* Welcome Message */}
-                    <div className="mb-[60px]">
-                        <h1 className="text-3xl md:text-[40px] font-bold text-secondary mb-2">Welcome!</h1>
-                        <p className="text-[#545F7D]">Enter details to login.</p>
+                    <div className={styles.welcomeSection}>
+                        <h1 className={styles.welcomeTitle}>Welcome!</h1>
+                        <p className={styles.welcomeText}>Enter details to login.</p>
                     </div>
 
                     {/* Login Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div>
+                    <form onSubmit={handleSubmit} className={styles.loginForm}>
+                        <div className={styles.inputGroup}>
                             <input
                                 id="email"
                                 type="email"
@@ -114,24 +115,21 @@ export default function LoginPage() {
                                 }}
                                 onBlur={() => handleBlur('email')}
                                 placeholder="Email"
-                                className={`w-full max-w-[447px] px-4 py-3.5 border-2 rounded-md outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-[#545F7D] transition-all ${errors.email && touched.email
-                                    ? 'border-red-500 focus:ring-red-500'
-                                    : 'border-[#e5e7eb]'
-                                    }`}
+                                className={`${styles.input} ${errors.email && touched.email ? styles.error : ''}`}
                             />
                             {errors.email && touched.email && (
                                 <motion.p
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0 }}
-                                    className="mt-2 text-sm text-red-500"
+                                    className={styles.errorMessage}
                                 >
                                     {errors.email}
                                 </motion.p>
                             )}
                         </div>
-                        <div>
-                            <div className="relative">
+                        <div className={styles.inputGroup}>
+                            <div className={styles.passwordContainer}>
                                 <input
                                     id="password"
                                     type={showPassword ? 'text' : 'password'}
@@ -144,15 +142,12 @@ export default function LoginPage() {
                                     }}
                                     onBlur={() => handleBlur('password')}
                                     placeholder="Password"
-                                    className={`w-full max-w-[447px] px-4 py-3.5 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent pr-20 bg-white text-[#545F7D] transition-all ${errors.password && touched.password
-                                        ? 'border-red-500 focus:ring-red-500'
-                                        : 'border-[#e5e7eb]'
-                                        }`}
+                                    className={`${styles.input} ${styles.passwordInput} ${errors.password && touched.password ? styles.error : ''}`}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-primary tracking-[10%] text-sm font-semibold"
+                                    className={styles.showPasswordButton}
                                 >
                                     {showPassword ? 'HIDE' : 'SHOW'}
                                 </button>
@@ -162,7 +157,7 @@ export default function LoginPage() {
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0 }}
-                                    className="mt-2 text-sm text-red-500"
+                                    className={styles.errorMessage}
                                 >
                                     {errors.password}
                                 </motion.p>
@@ -172,7 +167,7 @@ export default function LoginPage() {
                         <div>
                             <Link
                                 href="#"
-                                className="text-primary text-sm font-semibold cursor-pointer"
+                                className={styles.forgotPasswordLink}
                             >
                                 FORGOT PASSWORD?
                             </Link>
@@ -181,13 +176,13 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full cursor-pointer bg-primary text-white py-3 rounded-lg font-semibold transition-colors hover:opacity-90 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className={styles.submitButton}
                         >
                             {isLoading ? (
                                 <>
-                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    <svg className={styles.spinner} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className={styles.spinnerCircle} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className={styles.spinnerPath} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                     <span>LOGGING IN...</span>
                                 </>

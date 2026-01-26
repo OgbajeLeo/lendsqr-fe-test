@@ -63,6 +63,8 @@ lendsqr/
 │   │           └── page.tsx       # User details page
 │   ├── login/
 │   │   └── page.tsx               # Login page
+│   ├── styles/
+│   │   └── page.tsx               # css custom variable
 │   ├── globals.css                # Global styles and Tailwind config
 │   ├── layout.tsx                 # Root layout with AuthGuard
 │   └── page.tsx                   # Home page (redirects to login/users)
