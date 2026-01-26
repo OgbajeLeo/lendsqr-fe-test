@@ -152,7 +152,7 @@ export default function LoginPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-primary tracking-[80%] text-sm font-semibold"
+                                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-primary tracking-[10%] text-sm font-semibold"
                                 >
                                     {showPassword ? 'HIDE' : 'SHOW'}
                                 </button>

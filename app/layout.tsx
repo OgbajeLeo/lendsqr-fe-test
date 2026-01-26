@@ -27,16 +27,16 @@ const avenirNext = localFont({
     },
 
   ],
-  display: 'swap', 
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
   title: "Lendsqr - Admin Dashboard",
   description: "Lendsqr admin dashboard for managing users and loans",
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: "/Union.png",
+    shortcut: "/Union.png",
+    apple: "/Union.png",
   },
 };
 
