@@ -7,7 +7,6 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is authenticated
     const isAuthenticated = localStorage.getItem('isAuthenticated');
     if (isAuthenticated) {
       router.push('/dashboard/users');
@@ -17,7 +16,7 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-white">
       <p>Loading...</p>
     </div>
   );

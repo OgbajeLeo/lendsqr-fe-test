@@ -6,6 +6,7 @@ import Link from 'next/link';
 import DashboardLayout from '../../../components/DashboardLayout';
 import { Work_Sans } from "next/font/google";
 import Stars from '@/app/components/IconComponents/Stars';
+import { formatCurrencyWithCommas } from '@/utils/helperFuntions';
 const workSans = Work_Sans({
     variable: "--font-work-sans",
     subsets: ["latin"],
@@ -73,7 +74,6 @@ export default function UserDetailsPage() {
 
         if (showConfirmDialog) {
             document.addEventListener('keydown', handleEscape);
-            // Prevent body scroll when modal is open
             document.body.style.overflow = 'hidden';
         }
 
@@ -86,19 +86,16 @@ export default function UserDetailsPage() {
     const fetchUserDetails = async () => {
         try {
             setLoading(true);
-
-            // First, try to get from localStorage
             if (typeof window !== 'undefined') {
-                const storedData = localStorage.getItem('userData');
+                const storedData = localStorage.getItem('userDataCache');
                 if (storedData) {
                     const parsedData = JSON.parse(storedData);
                     const user = parsedData.find((u: any) => u.id === userId);
 
                     if (user) {
-                        // Transform the JSON structure to match UserDetails interface
                         const transformedUser: UserDetails = {
                             id: user.id,
-                            accountBalance: '₦200,000.00', // Default value since not in JSON
+                            accountBalance: '₦200,000.00',
                             accountNumber: user.account_number || '9912345678',
                             profile: {
                                 firstName: user.full_name?.split(' ')[0] || '',
@@ -118,7 +115,7 @@ export default function UserDetailsPage() {
                                 duration: user.duration_of_employment || 'N/A',
                                 officeEmail: user.office_email || 'N/A',
                                 monthlyIncome: user.monthly_income
-                                    ? [user.monthly_income, user.monthly_income] // Using same value for min/max since JSON has single value
+                                    ? [user.monthly_income, user.monthly_income]
                                     : ['N/A', 'N/A'],
                                 loanRepayment: user.loan_repayment || 'N/A',
                             },
@@ -146,7 +143,6 @@ export default function UserDetailsPage() {
                             if (statuses[userId]) {
                                 setUserStatus(statuses[userId]);
                             } else {
-                                // Determine initial status from employment status
                                 let initialStatus: 'Active' | 'Inactive' | 'Pending' | 'Blacklisted' = 'Active';
                                 if (user.employment_status === 'Unemployed') {
                                     initialStatus = 'Inactive';
@@ -156,7 +152,6 @@ export default function UserDetailsPage() {
                                 setUserStatus(initialStatus);
                             }
                         } else {
-                            // Determine initial status from employment status
                             let initialStatus: 'Active' | 'Inactive' | 'Pending' | 'Blacklisted' = 'Active';
                             if (user.employment_status === 'Unemployed') {
                                 initialStatus = 'Inactive';
@@ -202,14 +197,12 @@ export default function UserDetailsPage() {
             const statuses = userStatusData ? JSON.parse(userStatusData) : {};
             statuses[userId] = newStatus;
             localStorage.setItem('userStatuses', JSON.stringify(statuses));
-
-            // Also update the userData to reflect status change
             const storedData = localStorage.getItem('userData');
             if (storedData) {
                 const parsedData = JSON.parse(storedData);
                 const updatedData = parsedData.map((u: any) => {
                     if (u.id === userId) {
-                       if (newStatus === 'Blacklisted') {
+                        if (newStatus === 'Blacklisted') {
                             return { ...u, status: 'Blacklisted' };
                         } else if (newStatus === 'Active') {
                             return { ...u, status: 'Active' };
@@ -305,7 +298,7 @@ export default function UserDetailsPage() {
                             {/* User Info Section */}
                             <div className="text-center sm:text-left">
                                 <h2 className="text-[22px] font-semibold text-secondary mb-2">{fullName}</h2>
-                                <p className="text-sm text-gray-500 mb-2">{userId}</p>
+                                <p className="text-sm text-[#38538a] mb-2">{userId}</p>
                                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${userStatus === 'Active' ? 'bg-green-100 text-[#39CD62]' :
                                     userStatus === 'Inactive' ? 'bg-gray-100 text-[#545F7D]' :
                                         userStatus === 'Pending' ? 'bg-[#fdf7e5] text-[#E9B200]' :
@@ -316,17 +309,17 @@ export default function UserDetailsPage() {
                             </div>
 
                             {/* User's Tier */}
-                            <div className="shrink-0 border-r px-[30px] border-l border-gray-200 ">
-                                <p className="text-sm text-gray-500 mb-2">User's Tier</p>
+                            <div className="shrink-0 border-r px-[30px] border-l border-[#e8e9ed] ">
+                                <p className="text-sm text-[#38538a] font-medium mb-2">User's Tier</p>
                                 <Stars />
                             </div>
 
                             {/* Account Balance */}
                             <div className="shrink-0 text-right lg:text-left">
                                 <p className="text-[22px] font-semibold text-secondary mb-2">
-                                    {userDetails.accountBalance || '₦200,000.00'}
+                                    {formatCurrencyWithCommas(userDetails.accountBalance || '₦200,000.00')}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-[#38538a]">
                                     {userDetails.accountNumber || '9912345678'}/Providus Bank
                                 </p>
                             </div>
@@ -347,9 +340,9 @@ export default function UserDetailsPage() {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.id
+                                    className={`px-6 py-4 text-sm cursor-pointer font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.id
                                         ? 'border-primary text-primary'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                                        : 'border-transparent text-gray-700'
                                         }`}
                                 >
                                     {tab.label}
@@ -371,47 +364,47 @@ export default function UserDetailsPage() {
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-6 space-y-8 border-b border-gray-200 pb-6">
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Full Name</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Full Name</p>
                                             <p className="text-sm font-medium text-[#545F7D]">{fullName}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Phone Number</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Phone Number</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.profile?.phoneNumber || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Email Address</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Email Address</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.profile?.email || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">BVN</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">BVN</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.profile?.bvn || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Gender</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Gender</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.profile?.gender || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Marital Status</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Marital Status</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.profile?.maritalStatus || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Children</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Children</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.profile?.children || 'None'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Type of Residence</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Type of Residence</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.profile?.typeOfResidence || 'N/A'}
                                             </p>
@@ -426,25 +419,25 @@ export default function UserDetailsPage() {
                                     </h3>
                                     <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 space-y-6 border-b border-gray-200 pb-6">
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Level of Education</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Level of Education</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.education?.level || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Employment Status</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Employment Status</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.education?.employmentStatus || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Sector of Employment</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Sector of Employment</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.education?.sector || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">
                                                 Duration of Employment
                                             </p>
                                             <p className="text-sm font-medium text-[#545F7D]">
@@ -452,23 +445,23 @@ export default function UserDetailsPage() {
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Office Email</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Office Email</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.education?.officeEmail || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Monthly Income</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Monthly Income</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.education?.monthlyIncome
-                                                    ? `${userDetails.education.monthlyIncome[0]} - ${userDetails.education.monthlyIncome[1]}`
+                                                    ? `${formatCurrencyWithCommas(userDetails.education.monthlyIncome[0])} - ${formatCurrencyWithCommas(userDetails.education.monthlyIncome[1])}`
                                                     : 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Loan Repayment</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Loan Repayment</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
-                                                {userDetails.education?.loanRepayment || 'N/A'}
+                                                {formatCurrencyWithCommas(userDetails.education?.loanRepayment || 'N/A')}
                                             </p>
                                         </div>
                                     </div>
@@ -479,19 +472,19 @@ export default function UserDetailsPage() {
                                     <h3 className="text-base font-semibold text-secondary mb-4">Socials</h3>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6 space-y-6 border-b border-gray-200 pb-6">
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Twitter</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Twitter</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.socials?.twitter || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Facebook</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Facebook</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.socials?.facebook || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase mb-2">Instagram</p>
+                                            <p className="text-xs text-[#38538a] uppercase mb-2">Instagram</p>
                                             <p className="text-sm font-medium text-[#545F7D]">
                                                 {userDetails.socials?.instagram || 'N/A'}
                                             </p>
@@ -505,27 +498,27 @@ export default function UserDetailsPage() {
                                     <div className="">
                                         {userDetails.guarantor && userDetails.guarantor.length > 0 ? (
                                             userDetails.guarantor.map((guarantor, index) => (
-                                                <div key={index} className="grid grid-cols-2 lg:grid-cols-4 gap-6 space-y-6 border-b border-gray-200  w-full">
+                                                <div key={index} className="grid grid-cols-1 lg:grid-cols-4 gap-6 space-y-6 border-b border-gray-200  w-full">
                                                     <div>
-                                                        <p className="text-xs text-gray-500 uppercase mb-2">Full Name</p>
+                                                        <p className="text-xs text-[#38538a] uppercase mb-2">Full Name</p>
                                                         <p className="text-sm font-medium text-[#545F7D]">
                                                             {guarantor.fullName}
                                                         </p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-gray-500 uppercase mb-2">Phone Number</p>
+                                                        <p className="text-xs text-[#38538a] uppercase mb-2">Phone Number</p>
                                                         <p className="text-sm font-medium text-[#545F7D]">
                                                             {guarantor.phoneNumber}
                                                         </p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-gray-500 uppercase mb-2">Email Address</p>
+                                                        <p className="text-xs text-[#38538a] uppercase mb-2">Email Address</p>
                                                         <p className="text-sm font-medium text-[#545F7D]">
                                                             {guarantor.emailAddress}
                                                         </p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-gray-500 uppercase mb-2">Relationship</p>
+                                                        <p className="text-xs text-[#38538a] uppercase mb-2">Relationship</p>
                                                         <p className="text-sm font-medium text-[#545F7D]">
                                                             {guarantor.relationship}
                                                         </p>
@@ -533,7 +526,7 @@ export default function UserDetailsPage() {
                                                 </div>
                                             ))
                                         ) : (
-                                            <p className="text-sm text-gray-500">No guarantor information available</p>
+                                            <p className="text-sm text-[#38538a]">No guarantor information available</p>
                                         )}
                                     </div>
                                 </div>
@@ -605,7 +598,7 @@ export default function UserDetailsPage() {
                                     <h3 className="text-xl font-semibold text-secondary">
                                         {actionType === 'blacklist' ? 'Blacklist User' : 'Activate User'}
                                     </h3>
-                                    <p className="text-sm text-gray-500 mt-0.5">
+                                    <p className="text-sm text-[#38538a] mt-0.5">
                                         {userDetails?.profile?.firstName} {userDetails?.profile?.lastName}
                                     </p>
                                 </div>
@@ -628,7 +621,7 @@ export default function UserDetailsPage() {
                                     {actionType === 'blacklist' ? 'blacklist' : 'activate'}
                                 </span> this user?
                             </p>
-                            <p className="text-sm text-gray-500 mt-3">
+                            <p className="text-sm text-[#38538a] mt-3">
                                 {actionType === 'blacklist'
                                     ? 'This action will restrict the user from accessing their account and all associated services.'
                                     : 'This action will restore the user\'s access to their account and all associated services.'}

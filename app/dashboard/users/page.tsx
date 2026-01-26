@@ -14,6 +14,7 @@ import BlacklistIcon from '@/app/components/IconComponents/BlacklistIcon';
 import EyeIcon from '@/app/components/IconComponents/EyeIcon';
 import DateIcon from '@/app/components/IconComponents/DateIcon';
 import UserTableSkeleton from '@/app/components/SkeletonLoader';
+import { motion } from 'framer-motion';
 const workSans = Work_Sans({
     variable: "--font-work-sans",
     subsets: ["latin"],
@@ -38,8 +39,6 @@ export default function UsersPage() {
     const [menuPosition, setMenuPosition] = useState<{ [key: string]: 'top' | 'bottom' }>({});
     const menuRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
     const router = useRouter();
-
-    // Filter panel state
     const [showFilterPanel, setShowFilterPanel] = useState(false);
     const [filterOrganization, setFilterOrganization] = useState('');
     const [filterUsername, setFilterUsername] = useState('');
@@ -47,20 +46,19 @@ export default function UsersPage() {
     const [filterDate, setFilterDate] = useState('');
     const [filterPhone, setFilterPhone] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
+    const apiUrl = process.env.NEXT_PUBLIC_JSON_GENERATOR_API_URL;
+    const apiKey = process.env.NEXT_PUBLIC_JSON_GENERATOR_API_KEY;
     useEffect(() => {
         fetchUsers();
     }, []);
 
     useEffect(() => {
-        // Apply filters
         let filtered = users.filter(user => {
             const matchesOrganization = !filterOrganization || user.organization.toLowerCase().includes(filterOrganization.toLowerCase());
             const matchesUsername = !filterUsername || user.username.toLowerCase().includes(filterUsername.toLowerCase());
             const matchesEmail = !filterEmail || user.email.toLowerCase().includes(filterEmail.toLowerCase());
             const matchesPhone = !filterPhone || user.phone_number.includes(filterPhone);
             const matchesStatus = !filterStatus || user.status === filterStatus;
-
-            // Date filter - check if date_joined matches the selected date
             let matchesDate = true;
             if (filterDate) {
                 const userDate = new Date(user.date_joined).toISOString().split('T')[0];
@@ -69,8 +67,6 @@ export default function UsersPage() {
 
             return matchesOrganization && matchesUsername && matchesEmail && matchesPhone && matchesStatus && matchesDate;
         });
-
-        // Apply pagination
         const start = (currentPage - 1) * itemsPerPage;
         const end = start + itemsPerPage;
         setFilteredUsers(filtered.slice(start, end));
@@ -95,14 +91,12 @@ export default function UsersPage() {
     useEffect(() => {
         const handleClickOutsideFilter = (event: MouseEvent) => {
             const target = event.target as HTMLElement;
-            // Close filter panel when clicking outside, but not when clicking the filter trigger
             if (showFilterPanel && !target.closest('.filter-panel') && !target.closest('.filter-trigger')) {
                 setShowFilterPanel(false);
             }
         };
 
         if (showFilterPanel) {
-            // Use a small delay to prevent immediate closing when opening
             const timeoutId = setTimeout(() => {
                 document.addEventListener('mousedown', handleClickOutsideFilter);
             }, 100);
@@ -118,43 +112,104 @@ export default function UsersPage() {
         try {
             setLoading(true);
             if (typeof window !== 'undefined') {
-                const storedData = localStorage.getItem('userData');
-                if (storedData) {
-                    const parsedData = JSON.parse(storedData);
+                const cachedData = localStorage.getItem('userDataCache');
+                const cacheTimestamp = localStorage.getItem('userDataCacheTimestamp');
 
-                    // Transform the data to match the User interface
-                    // Map the userData.json structure to the expected User interface
-                    const transformedUsers: User[] = parsedData.map((user: any) => {
-                        let status: 'Active' | 'Inactive' | 'Pending' | 'Blacklisted' = 'Active';
-                        if (user.employment_status === 'Unemployed') {
-                            status = 'Inactive';
-                        } else if (user.employment_status === 'Student') {
-                            status = 'Pending';
-                        }
+                if (cachedData && cacheTimestamp) {
+                    const cacheAge = Date.now() - parseInt(cacheTimestamp);
+                    const CACHE_DURATION = 20 * 60 * 1000; // 20 minutes
 
-                        return {
-                            id: user.id,
-                            organization: 'Lendsqr',
-                            username: user.full_name || 'N/A',
-                            email: user.email_address || 'N/A',
-                            phone_number: user.phone_number || 'N/A',
-                            date_joined: user.created_at || new Date().toISOString(),
-                            status: status,
-                        };
-                    });
+                    if (cacheAge < CACHE_DURATION) {
+                        const cachedUsers = JSON.parse(cachedData);
+                        setUsers(
+                            cachedUsers.map((user: any) => {
+                                const status = user.employment_status === 'Unemployed'
+                                    ? 'Inactive'
+                                    : user.employment_status === 'Student'
+                                        ? 'Pending'
+                                        : 'Active';
 
-                    setUsers(transformedUsers);
-                    setLoading(false);
-                    return;
+                                return {
+                                    id: user.id,
+                                    organization: 'Lendsqr',
+                                    username: user.full_name,
+                                    email: user.email_address,
+                                    phone_number: user.phone_number,
+                                    date_joined: user.created_at,
+                                    status,
+                                };
+                            })
+                        );
+                        setLoading(false);
+
+                        fetchAndUpdateCache();
+                        return;
+                    }
                 }
             }
-
-
+            await fetchAndUpdateCache();
         } catch (error) {
             console.error('Error fetching users:', error);
-            setUsers([]);
+            if (typeof window !== 'undefined') {
+                const cachedData = localStorage.getItem('userDataCache');
+                if (cachedData) {
+                    const cachedUsers: User[] = JSON.parse(cachedData);
+                    setUsers(cachedUsers);
+                } else {
+                    setUsers([]);
+                }
+            } else {
+                setUsers([]);
+            }
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAndUpdateCache = async () => {
+        try {
+
+            if (!apiUrl || !apiKey) {
+                throw new Error('API URL or API key is not set');
+            }
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch users');
+            }
+
+            const parsedData = await response.json();
+
+            const transformedUsers: User[] = parsedData.map((user: any) => {
+                let status: 'Active' | 'Inactive' | 'Pending' | 'Blacklisted' = 'Active';
+                if (user.employment_status === 'Unemployed') {
+                    status = 'Inactive';
+                } else if (user.employment_status === 'Student') {
+                    status = 'Pending';
+                }
+
+                return {
+                    id: user.id,
+                    organization: 'Lendsqr',
+                    username: user.full_name || 'N/A',
+                    email: user.email_address || 'N/A',
+                    phone_number: user.phone_number || 'N/A',
+                    date_joined: user.created_at || new Date().toISOString(),
+                    status: status,
+                };
+            });
+            setUsers(transformedUsers);
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('userDataCache', JSON.stringify(parsedData));
+                localStorage.setItem('userDataCacheTimestamp', Date.now().toString());
+            }
+        } catch (error) {
+            console.error('Error fetching users from API:', error);
+            throw error;
         }
     };
 
@@ -227,7 +282,6 @@ export default function UsersPage() {
         ));
     };
 
-    // Get unique organizations and statuses for dropdowns
     const uniqueOrganizations = Array.from(new Set(users.map(u => u.organization))).sort();
     const uniqueStatuses: ('Active' | 'Inactive' | 'Pending' | 'Blacklisted')[] = ['Active', 'Inactive', 'Pending', 'Blacklisted'];
 
@@ -315,22 +369,36 @@ export default function UsersPage() {
         <DashboardLayout>
             <div className="space-y-6">
                 {/* Page Title */}
-                <h1 className="text-2xl font-medium text-secondary">Users</h1>
+                <h1 className="text-2xl font-medium text-[#545f7d]">Users</h1>
 
                 {/* Stats Cards */}
                 <div className={`${workSans.className} grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6`}>
                     {statsCards.map((card, index) => (
-                        <div key={index} className={`bg-white p-6 rounded-lg shadow`}>
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                                duration: 0.4,
+                                delay: index * 0.1,
+                                ease: [0.25, 0.1, 0.25, 1]
+                            }}
+                            whileHover={{
+                                y: -4,
+                                transition: { duration: 0.2 }
+                            }}
+                            className={`bg-white p-6 rounded-lg shadow cursor-pointer`}
+                        >
                             <div className="space-y-3">
                                 <div className={`w-12 h-12 rounded-full ${card.bgColor} flex items-center justify-center`}>
                                     <span className="text-2xl">{card.icon}</span>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600 uppercase mb-3">{card.title}</p>
-                                    <p className="text-2xl font-bold text-secondary">{card.value}</p>
+                                    <p className="text-sm text-[#545f7d] font-medium uppercase mb-3">{card.title}</p>
+                                    <p className="text-2xl font-bold text-[#545f7d]">{card.value}</p>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
 
@@ -339,7 +407,7 @@ export default function UsersPage() {
                     {loading ? (
                         <>
                             {/* Mobile Loading State */}
-                            <div className="lg:hidden p-8 text-center text-gray-600 min-h-[350px] flex items-center justify-center">
+                            <div className="lg:hidden p-8 text-center text-[#545f7d] min-h-[350px] flex items-center justify-center">
                                 Loading users...
                             </div>
                             {/* Desktop Skeleton Loader */}
@@ -370,13 +438,13 @@ export default function UsersPage() {
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex-1">
                                                         <p className="font-semibold text-secondary">{user.username}</p>
-                                                        <p className="text-sm text-gray-600">{user.email}</p>
+                                                        <p className="text-sm text-[#545f7d]">{user.email}</p>
                                                     </div>
                                                     <div className="relative">
                                                         <button
                                                             ref={(el) => { menuRefs.current[user.id] = el; }}
                                                             onClick={(e) => handleMenuToggle(user.id, e)}
-                                                            className="menu-trigger text-gray-400 hover:text-gray-600 p-1"
+                                                            className="menu-trigger text-gray-400 hover:text-[#545f7d] p-1"
                                                         >
                                                             <svg
                                                                 className="w-5 h-5"
@@ -401,21 +469,21 @@ export default function UsersPage() {
                                                                 <div className="py-1">
                                                                     <button
                                                                         onClick={() => handleViewDetails(user.id)}
-                                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                                                                        className="w-full text-left px-4 py-2 text-sm text-[#545f7d] hover:bg-gray-100 flex items-center gap-3"
                                                                     >
                                                                         <EyeIcon />
                                                                         View Details
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleBlacklistUser(user.id)}
-                                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                                                                        className="w-full text-left px-4 py-2 text-sm text-[#545f7d] hover:bg-gray-100 flex items-center gap-3"
                                                                     >
                                                                         <BlacklistIcon />
                                                                         Blacklist User
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleActivateUser(user.id)}
-                                                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                                                                        className="w-full text-left px-4 py-2 text-sm text-[#545f7d] hover:bg-gray-100 flex items-center gap-3"
                                                                     >
                                                                         <ActivateIcon />
                                                                         Activate User
@@ -428,15 +496,15 @@ export default function UsersPage() {
                                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                                     <div>
                                                         <p className="text-xs text-gray-500">Organization</p>
-                                                        <p className="text-[#8b9bba]">{user.organization}</p>
+                                                        <p className="text-[#545f7d]">{user.organization}</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-xs text-gray-500">Phone</p>
-                                                        <p className="text-[#8b9bba]">{user.phone_number}</p>
+                                                        <p className="text-[#545f7d]">{user.phone_number}</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-xs text-gray-500">Date Joined</p>
-                                                        <p className="text-[#8b9bba]">{formatDate(user.date_joined)}</p>
+                                                        <p className="text-[#545f7d]">{formatDate(user.date_joined)}</p>
                                                     </div>
                                                     <div>
                                                         <p className="text-xs text-gray-500">Status</p>
@@ -455,20 +523,20 @@ export default function UsersPage() {
                                 </div>
 
                                 {/* Desktop Table View */}
-                                <div className="relative min-h-[550px]">
+                                <div className="relative ">
                                     {/* Filter Panel */}
                                     {showFilterPanel && (
                                         <div className="filter-panel absolute left-0 top-0 z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-6 w-80">
                                             <div className="space-y-4">
                                                 {/* Organization */}
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                                                    <label className="block text-xs font-medium text-[#545f7d] mb-2">
                                                         Organization
                                                     </label>
                                                     <select
                                                         value={filterOrganization}
                                                         onChange={(e) => setFilterOrganization(e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-[#545f7d] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                                     >
                                                         <option value="">Select</option>
                                                         {uniqueOrganizations.map((org) => (
@@ -481,7 +549,7 @@ export default function UsersPage() {
 
                                                 {/* Username */}
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                                                    <label className="block text-xs font-medium text-[#545f7d] mb-2">
                                                         Username
                                                     </label>
                                                     <input
@@ -489,13 +557,13 @@ export default function UsersPage() {
                                                         value={filterUsername}
                                                         onChange={(e) => setFilterUsername(e.target.value)}
                                                         placeholder="User"
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-[#545f7d] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                                     />
                                                 </div>
 
                                                 {/* Email */}
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                                                    <label className="block text-xs font-medium text-[#545f7d] mb-2">
                                                         Email
                                                     </label>
                                                     <input
@@ -503,13 +571,13 @@ export default function UsersPage() {
                                                         value={filterEmail}
                                                         onChange={(e) => setFilterEmail(e.target.value)}
                                                         placeholder="Email"
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-[#545f7d] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                                     />
                                                 </div>
 
                                                 {/* Date */}
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                                                    <label className="block text-xs font-medium text-[#545f7d] mb-2">
                                                         Date
                                                     </label>
                                                     <div className="relative">
@@ -518,7 +586,7 @@ export default function UsersPage() {
                                                             value={filterDate}
                                                             onChange={(e) => setFilterDate(e.target.value)}
                                                             placeholder="Date"
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-[#545f7d] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                                         />
                                                         <div className="absolute right-4 top-2">
                                                             <DateIcon />
@@ -528,7 +596,7 @@ export default function UsersPage() {
 
                                                 {/* Phone Number */}
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                                                    <label className="block text-xs font-medium text-[#545f7d] mb-2">
                                                         Phone Number
                                                     </label>
                                                     <input
@@ -536,19 +604,19 @@ export default function UsersPage() {
                                                         value={filterPhone}
                                                         onChange={(e) => setFilterPhone(e.target.value)}
                                                         placeholder="Phone Number"
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-[#545f7d] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                                     />
                                                 </div>
 
                                                 {/* Status */}
                                                 <div>
-                                                    <label className="block text-xs font-medium text-gray-700 mb-2">
+                                                    <label className="block text-xs font-medium text-[#545f7d] mb-2">
                                                         Status
                                                     </label>
                                                     <select
                                                         value={filterStatus}
                                                         onChange={(e) => setFilterStatus(e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-[#545f7d] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                                     >
                                                         <option value="">Select</option>
                                                         {uniqueStatuses.map((status) => (
@@ -581,7 +649,7 @@ export default function UsersPage() {
                                     <table className="w-full hidden lg:table">
                                         <thead className=" ">
                                             <tr>
-                                                <th className="px-6 py-5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                <th className="px-6 py-5 text-left text-xs font-semibold text-[#545f7d] uppercase tracking-wider">
                                                     <div className="flex items-center gap-2">
                                                         Organization
                                                         <button
@@ -592,7 +660,7 @@ export default function UsersPage() {
                                                         </button>
                                                     </div>
                                                 </th>
-                                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#545f7d] uppercase tracking-wider">
                                                     <div className="flex items-center gap-2">
                                                         Username
                                                         <button
@@ -603,7 +671,7 @@ export default function UsersPage() {
                                                         </button>
                                                     </div>
                                                 </th>
-                                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#545f7d] uppercase tracking-wider">
                                                     <div className="flex items-center gap-2">
                                                         Email
                                                         <button
@@ -614,7 +682,7 @@ export default function UsersPage() {
                                                         </button>
                                                     </div>
                                                 </th>
-                                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#545f7d] uppercase tracking-wider">
                                                     <div className="flex items-center gap-2 whitespace-nowrap">
                                                         Phone Number
                                                         <button
@@ -625,7 +693,7 @@ export default function UsersPage() {
                                                         </button>
                                                     </div>
                                                 </th>
-                                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#545f7d] uppercase tracking-wider">
                                                     <div className="flex items-center gap-2">
                                                         Date Joined
                                                         <button
@@ -636,7 +704,7 @@ export default function UsersPage() {
                                                         </button>
                                                     </div>
                                                 </th>
-                                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#545f7d] uppercase tracking-wider">
                                                     <div className="flex items-center gap-2">
                                                         Status
                                                         <button
@@ -647,7 +715,7 @@ export default function UsersPage() {
                                                         </button>
                                                     </div>
                                                 </th>
-                                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                <th className="px-6 py-3 text-left text-xs font-semibold text-[#545f7d] uppercase tracking-wider">
                                                     {/* Actions column */}
                                                 </th>
                                             </tr>
@@ -663,20 +731,20 @@ export default function UsersPage() {
                                                 </tr>
                                             ) : (
                                                 filteredUsers.map((user) => (
-                                                    <tr onClick={() => router.push(`/dashboard/users/${user.id}`)} key={user.id} className="hover:bg-gray-50">
-                                                        <td className="px-6 py-6 whitespace-nowrap text-sm text-[#8b9bba]">
+                                                    <tr onClick={() => router.push(`/dashboard/users/${user.id}`)} key={user.id} className="hover:bg-gray-50 cursor-pointer">
+                                                        <td className="px-6 py-6 whitespace-nowrap text-sm text-[#545f7d]">
                                                             {user.organization}
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#8b9bba]">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#545f7d]">
                                                             {user.username}
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#8b9bba]">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#545f7d]">
                                                             {user.email}
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#8b9bba]">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#545f7d]">
                                                             {user.phone_number}
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#8b9bba]">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#545f7d]">
                                                             {formatDate(user.date_joined)}
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -692,7 +760,7 @@ export default function UsersPage() {
                                                             <button
                                                                 ref={(el) => { menuRefs.current[user.id] = el; }}
                                                                 onClick={(e) => handleMenuToggle(user.id, e)}
-                                                                className="menu-trigger text-gray-400 hover:text-gray-600 p-1"
+                                                                className="menu-trigger text-gray-400 hover:text-[#545f7d] p-1"
                                                             >
                                                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                     <g clipPath="url(#clip0_106_835)">
@@ -714,21 +782,21 @@ export default function UsersPage() {
                                                                     <div className="py-3 space-y-3">
                                                                         <button
                                                                             onClick={() => handleViewDetails(user.id)}
-                                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                                                                            className="w-full text-left px-4 py-2 text-sm text-[#545f7d] hover:bg-gray-100 flex items-center gap-3"
                                                                         >
                                                                             <EyeIcon />
                                                                             View Details
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleBlacklistUser(user.id)}
-                                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                                                                            className="w-full text-left px-4 py-2 text-sm text-[#545f7d] hover:bg-gray-100 flex items-center gap-3"
                                                                         >
                                                                             <BlacklistIcon />
                                                                             Blacklist User
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleActivateUser(user.id)}
-                                                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                                                                            className="w-full text-left px-4 py-2 text-sm text-[#545f7d] hover:bg-gray-100 flex items-center gap-3"
                                                                         >
                                                                             <ActivateIcon />
                                                                             Activate User
@@ -750,9 +818,9 @@ export default function UsersPage() {
                     )}
                 </div>
                 {/* Pagination */}
-                <div className="px-4 text-[#8b9bba] -mt-5 lg:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="px-4 text-[#545f7d] -mt-5 lg:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-[#8b9bba]">Showing</span>
+                        <span className="text-sm text-[#545f7d]">Showing</span>
                         <select
                             value={itemsPerPage}
                             onChange={(e) => {
@@ -766,7 +834,7 @@ export default function UsersPage() {
                             <option value={50}>50</option>
                             <option value={100}>100</option>
                         </select>
-                        <span className="text-sm text-[#8b9bba]">
+                        <span className="text-sm text-[#545f7d]">
                             out of {getFilteredUsersCount().toLocaleString()}
                         </span>
                     </div>
@@ -779,7 +847,7 @@ export default function UsersPage() {
                         >
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g opacity="0.6">
-                                    <path d="M10.0061 11.0572C10.8472 11.8983 9.54344 13.1594 8.745 12.3183L3.99424 7.56753C3.61581 7.23121 3.61581 6.64276 3.99424 6.30644L8.61858 1.63996C9.45967 0.840975 10.7208 2.10261 9.87967 2.94316L5.8859 6.93694L10.0061 11.0572Z" fill="#213F7D" />
+                                    <path d="M10.0061 11.0572C10.8472 11.8983 9.54344 13.1594 8.745 12.3183L3.99424 7.56753C3.61581 7.23121 3.61581 6.64276 3.99424 6.30644L8.61858 1.63996C9.45967 0.840975 10.7208 2.10261 9.87967 2.94316L5.8859 6.93694L10.0061 11.0572Z" fill="#7a8cb1" />
                                 </g>
                             </svg>
 
@@ -827,7 +895,7 @@ export default function UsersPage() {
                             className="p-2 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                         >
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M3.99391 2.9428C3.15281 2.10171 4.45656 0.840563 5.255 1.68171L10.0058 6.43247C10.3842 6.76879 10.3842 7.35724 10.0058 7.69356L5.38142 12.36C4.54033 13.159 3.27918 11.8974 4.12033 11.0568L8.1141 7.06306L3.99391 2.9428Z" fill="#213F7D" />
+                                <path d="M3.99391 2.9428C3.15281 2.10171 4.45656 0.840563 5.255 1.68171L10.0058 6.43247C10.3842 6.76879 10.3842 7.35724 10.0058 7.69356L5.38142 12.36C4.54033 13.159 3.27918 11.8974 4.12033 11.0568L8.1141 7.06306L3.99391 2.9428Z" fill="#7a8cb1" />
                             </svg>
 
                         </button>

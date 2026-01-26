@@ -1,13 +1,39 @@
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
 import "./globals.css";
 import AuthGuard from "./components/AuthGuard";
+import localFont from 'next/font/local'
 
+const avenirNext = localFont({
+  src: [
+    {
+      path: '../public/fonts/Avenir_Next_Pro/AvenirNextLTPro-Regular.otf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Avenir_Next_Pro/AvenirNextLTPro-Bold.otf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Avenir_Next_Pro/AvenirNextLTPro-Medium.otf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/Avenir_Next_Pro/AvenirNextLTPro-Demi.otf',
+      weight: '600',
+      style: 'normal',
+    },
+    
+  ],
+  display: 'swap', // Recommended for performance
+})
 
-const fig = Figtree({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// const fig = Figtree({
+//   variable: "--font-figtree",
+//   subsets: ["latin"],
+// });
 
 export const metadata: Metadata = {
   title: "Lendsqr - Admin Dashboard",
@@ -22,7 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={` ${fig.variable} antialiased`}
+        className={` ${avenirNext.className} antialiased`}
       >
         <AuthGuard>{children}</AuthGuard>
       </body>

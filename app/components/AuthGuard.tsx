@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import DataInitializer from './DataInitializer';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -39,7 +38,6 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
   return (
     <>
-      <DataInitializer />
       {children}
     </>
   );
