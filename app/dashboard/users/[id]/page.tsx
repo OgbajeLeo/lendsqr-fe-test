@@ -362,7 +362,7 @@ export default function UserDetailsPage() {
                                     <h3 className="text-base font-semibold text-secondary mb-4">
                                         Personal Information
                                     </h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-6 space-y-8 border-b border-gray-200 pb-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 space-y-8 border-b border-gray-200 pb-6">
                                         <div>
                                             <p className="text-xs text-[#38538a] uppercase mb-2">Full Name</p>
                                             <p className="text-sm font-medium text-[#545F7D]">{fullName}</p>
@@ -417,7 +417,7 @@ export default function UserDetailsPage() {
                                     <h3 className="text-base font-semibold text-secondary mb-4">
                                         Education and Employment
                                     </h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 space-y-6 border-b border-gray-200 pb-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 space-y-6 border-b border-gray-200 pb-6">
                                         <div>
                                             <p className="text-xs text-[#38538a] uppercase mb-2">Level of Education</p>
                                             <p className="text-sm font-medium text-[#545F7D]">

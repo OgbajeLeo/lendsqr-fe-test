@@ -25,19 +25,19 @@ const avenirNext = localFont({
       weight: '600',
       style: 'normal',
     },
-    
-  ],
-  display: 'swap', // Recommended for performance
-})
 
-// const fig = Figtree({
-//   variable: "--font-figtree",
-//   subsets: ["latin"],
-// });
+  ],
+  display: 'swap', 
+})
 
 export const metadata: Metadata = {
   title: "Lendsqr - Admin Dashboard",
   description: "Lendsqr admin dashboard for managing users and loans",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
