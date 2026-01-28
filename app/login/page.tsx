@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -16,7 +16,18 @@ export default function LoginPage() {
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
     const [isLoading, setIsLoading] = useState(false);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const router = useRouter();
+
+    // Check if user is already authenticated before rendering
+    useEffect(() => {
+        const isAuthenticated = localStorage.getItem('isAuthenticated');
+        if (isAuthenticated) {
+            router.push('/dashboard/users');
+        } else {
+            setIsCheckingAuth(false);
+        }
+    }, [router]);
 
     const validateEmail = (email: string): string | undefined => {
         if (!email) {
@@ -72,6 +83,23 @@ export default function LoginPage() {
         }
     };
 
+    // Show loading screen while checking authentication
+    if (isCheckingAuth) {
+        return (
+            <div className={styles.loadingScreen}>
+                <div className={styles.loadingContent}>
+                    <Image className={styles.loadingLogo} src={logoSVG} alt="Logo" />
+                    <div className={styles.loadingSpinner}>
+                        <svg className={styles.spinner} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className={styles.spinnerCircle} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className={styles.spinnerPath} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.loginContainer}>
             {/* Left Side - Illustration */}
@@ -79,10 +107,10 @@ export default function LoginPage() {
                 <div className={styles.leftContent}>
                     {/* Logo */}
                     <div className={styles.logoContainer}>
-                        <Image className={styles.logo} src={logoSVG} alt="Login Illustration" />
+                        <Image className={styles.logo} src={logoSVG} alt="Logo" />
                     </div>
 
-                    {/* Illustration - Stylized character with geometric shapes */}
+                    {/* Illustration  */}
                     <div className={styles.illustrationContainer}>
                         <div className={styles.illustrationWrapper}>
                             <Image className={styles.illustration} src={loginSVG} alt="Login Illustration" width={500} height={500} />
@@ -94,6 +122,13 @@ export default function LoginPage() {
             {/* Right Side - Login Form */}
             <div className={styles.rightSide}>
                 <div className={styles.formContainer}>
+
+                    {/* Logo */}
+                    <div className={` block -mt-[100px] mb-20 lg:hidden`}>
+                        <Image className={styles.logo} src={logoSVG} alt="Logo" />
+                    </div>
+
+
                     {/* Welcome Message */}
                     <div className={styles.welcomeSection}>
                         <h1 className={styles.welcomeTitle}>Welcome!</h1>
