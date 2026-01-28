@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -41,6 +41,16 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+interface SearchUser {
+  id: string;
+  organization: string;
+  username: string;
+  email: string;
+  phone_number: string;
+  date_joined: string;
+  status: 'Active' | 'Inactive' | 'Pending' | 'Blacklisted';
+}
+
 const navigationItems = {
   customers: [
     { name: 'Users', href: '/dashboard/users', icon: <Users /> },
@@ -73,8 +83,146 @@ const navigationItems = {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchDropdownRef = useRef<HTMLDivElement>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+
+  const getUsersFromCache = (): SearchUser[] => {
+    if (typeof window === 'undefined') return [];
+
+    try {
+      const cachedData = localStorage.getItem('userDataCache');
+      if (!cachedData) return [];
+
+      const cachedUsers = JSON.parse(cachedData);
+      return cachedUsers.map((user: any) => {
+        const status = user.employment_status === 'Unemployed'
+          ? 'Inactive'
+          : user.employment_status === 'Student'
+            ? 'Pending'
+            : 'Active';
+
+        return {
+          id: user.id,
+          organization: 'Lendsqr',
+          username: user.full_name || 'N/A',
+          email: user.email_address || 'N/A',
+          phone_number: user.phone_number || 'N/A',
+          date_joined: user.created_at || new Date().toISOString(),
+          status: status as 'Active' | 'Inactive' | 'Pending' | 'Blacklisted',
+        };
+      });
+    } catch (error) {
+      console.error('Error parsing cached user data:', error);
+      return [];
+    }
+  };
+
+  const performSearch = (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSearchDropdown(false);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const users = getUsersFromCache();
+    const lowerQuery = query.toLowerCase().trim();
+
+    const results = users.filter(user => {
+      return (
+        user.username.toLowerCase().includes(lowerQuery) ||
+        user.email.toLowerCase().includes(lowerQuery) ||
+        user.phone_number.includes(lowerQuery) ||
+        user.organization.toLowerCase().includes(lowerQuery)
+      );
+    }).slice(0, 10);
+
+    setSearchResults(results);
+    setShowSearchDropdown(true);
+    setIsSearching(false);
+  };
+
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    if (searchQuery.trim()) {
+      debounceTimeoutRef.current = setTimeout(() => {
+        performSearch(searchQuery);
+      }, 300);
+    } else {
+      setSearchResults([]);
+      setShowSearchDropdown(false);
+      setIsSearching(false);
+    }
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchDropdownRef.current &&
+        !searchDropdownRef.current.contains(event.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchDropdown(false);
+      }
+    };
+
+    if (showSearchDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSearchDropdown]);
+
+  // Get status badge class
+  const getStatusClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return styles.active;
+      case 'inactive':
+        return styles.inactive;
+      case 'pending':
+        return styles.pending;
+      case 'blacklisted':
+        return styles.blacklisted;
+      default:
+        return styles.inactive;
+    }
+  };
+
+  const handleUserClick = (userId: string) => {
+    setSearchQuery('');
+    setShowSearchDropdown(false);
+    router.push(`/dashboard/users/${userId}`);
+  };
+
+  // Handle search input focus
+  const handleSearchFocus = () => {
+    if (searchQuery.trim()) {
+      setShowSearchDropdown(true);
+    }
+  };
+
   return (
     <div className={`${workSans.className} ${styles.dashboardContainer}`}>
       {/* Sidebar */}
@@ -120,7 +268,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </p>
                 <ul className={styles.navList}>
                   {navigationItems.customers.map((item) => {
-                    const isActive = pathname === item.href;
+                    const isActive = pathname === item.href || pathname.includes(item.href.split('/')[2]);
                     return (
                       <li key={item.href}>
                         <Link
@@ -238,9 +386,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className={styles.searchContainer}>
               <div className={styles.searchWrapper}>
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Search for anything"
                   className={styles.searchInput}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={handleSearchFocus}
                 />
                 <button
                   type="button"
@@ -260,6 +412,48 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     />
                   </svg>
                 </button>
+                {/* Search Dropdown */}
+                {showSearchDropdown && (
+                  <div ref={searchDropdownRef} className={styles.searchDropdown}>
+                    {isSearching ? (
+                      <div className={styles.searchDropdownItem}>
+                        <p className={styles.searchLoadingText}>Searching...</p>
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <>
+                        <div className={styles.searchDropdownHeader}>
+                          <p className={styles.searchDropdownTitle}>
+                            {searchResults.length} {searchResults.length === 1 ? 'result' : 'results'} found
+                          </p>
+                        </div>
+                        <div className={`${styles.searchDropdownList} my-scrollbar`}>
+                          {searchResults.map((user) => (
+                            <div
+                              key={user.id}
+                              className={styles.searchDropdownItem}
+                              onClick={() => handleUserClick(user.id)}
+                            >
+                              <div className={styles.searchUserInfo}>
+                                <p className={styles.searchUserName}>{user.username}</p>
+                                <p className={styles.searchUserEmail}>{user.email}</p>
+                                <p className={styles.searchUserPhone}>{user.phone_number}</p>
+                              </div>
+                              <div className={styles.searchUserMeta}>
+                                <span className={`${styles.searchStatusBadge} ${getStatusClass(user.status)}`}>
+                                  {user.status}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <div className={styles.searchDropdownItem}>
+                        <p className={styles.searchNoResults}>No users found</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
