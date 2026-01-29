@@ -268,19 +268,22 @@ export default function UsersPage() {
         setOpenMenuId(userId);
     };
 
-    const handleViewDetails = (userId: string) => {
+    const handleViewDetails = (userId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
         setOpenMenuId(null);
         router.push(`/dashboard/users/${userId}`);
     };
 
-    const handleBlacklistUser = (userId: string) => {
+    const handleBlacklistUser = (userId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
         setOpenMenuId(null);
         setUsers(users.map(user =>
             user.id === userId ? { ...user, status: 'Blacklisted' as const } : user
         ));
     };
 
-    const handleActivateUser = (userId: string) => {
+    const handleActivateUser = (userId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
         setOpenMenuId(null);
         setUsers(users.map(user =>
             user.id === userId ? { ...user, status: 'Active' as const } : user
@@ -622,24 +625,27 @@ export default function UsersPage() {
                                                         </button>
 
                                                         {openMenuId === user.id && (
-                                                            <div className={`context-menu ${styles.contextMenu} ${menuPosition[user.id] === 'top' ? styles.top : styles.bottom}`}>
+                                                            <div
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                className={`context-menu ${styles.contextMenu} ${menuPosition[user.id] === 'top' ? styles.top : styles.bottom}`}
+                                                            >
                                                                 <div className={styles.menuContent}>
                                                                     <button
-                                                                        onClick={() => handleViewDetails(user.id)}
+                                                                        onClick={(e) => handleViewDetails(user.id, e)}
                                                                         className={styles.menuItem}
                                                                     >
                                                                         <EyeIcon />
                                                                         View Details
                                                                     </button>
                                                                     <button
-                                                                        onClick={() => handleBlacklistUser(user.id)}
+                                                                        onClick={(e) => handleBlacklistUser(user.id, e)}
                                                                         className={styles.menuItem}
                                                                     >
                                                                         <BlacklistIcon />
                                                                         Blacklist User
                                                                     </button>
                                                                     <button
-                                                                        onClick={() => handleActivateUser(user.id)}
+                                                                        onClick={(e) => handleActivateUser(user.id, e)}
                                                                         className={styles.menuItem}
                                                                     >
                                                                         <ActivateIcon />
@@ -928,24 +934,27 @@ export default function UsersPage() {
                                                             </button>
 
                                                             {openMenuId === user.id && (
-                                                                <div className={`context-menu ${styles.contextMenuDesktop} ${menuPosition[user.id] === 'top' ? styles.top : styles.bottom}`}>
+                                                                <div
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                    className={`context-menu ${styles.contextMenuDesktop} ${menuPosition[user.id] === 'top' ? styles.top : styles.bottom}`}
+                                                                >
                                                                     <div className={styles.menuContent}>
                                                                         <button
-                                                                            onClick={() => handleViewDetails(user.id)}
+                                                                            onClick={(e) => handleViewDetails(user.id, e)}
                                                                             className={styles.menuItem}
                                                                         >
                                                                             <EyeIcon />
                                                                             View Details
                                                                         </button>
                                                                         <button
-                                                                            onClick={() => handleBlacklistUser(user.id)}
+                                                                            onClick={(e) => handleBlacklistUser(user.id, e)}
                                                                             className={styles.menuItem}
                                                                         >
                                                                             <BlacklistIcon />
                                                                             Blacklist User
                                                                         </button>
                                                                         <button
-                                                                            onClick={() => handleActivateUser(user.id)}
+                                                                            onClick={(e) => handleActivateUser(user.id, e)}
                                                                             className={styles.menuItem}
                                                                         >
                                                                             <ActivateIcon />
