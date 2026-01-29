@@ -93,7 +93,10 @@ export default function UsersPage() {
     useEffect(() => {
         const handleClickOutsideFilter = (event: MouseEvent) => {
             const target = event.target as HTMLElement;
-            if (showFilterPanel && !target.closest('.filter-panel') && !target.closest('.filter-trigger')) {
+            if (showFilterPanel &&
+                !target.closest('.filter-panel') &&
+                !target.closest('[class*="mobileFilterPanel"]') &&
+                !target.closest('.filter-trigger')) {
                 setShowFilterPanel(false);
             }
         };
@@ -419,6 +422,164 @@ export default function UsersPage() {
                     ) : (
                         <>
                             <div className={`${styles.tableWrapper} my-scrollbar`}>
+                                {/* Mobile Filter Button */}
+                                <div className={styles.mobileFilterButtonContainer}>
+                                    <button
+                                        onClick={handleFilterClick}
+                                        className={`filter-trigger ${styles.mobileFilterButton}`}
+                                    >
+                                        <Filter />
+                                        <span>Filter</span>
+                                        {hasActiveFilters && (
+                                            <span className={styles.filterBadge}>
+                                                {Object.values({
+                                                    filterOrganization,
+                                                    filterUsername,
+                                                    filterEmail,
+                                                    filterDate,
+                                                    filterPhone,
+                                                    filterStatus
+                                                }).filter(Boolean).length}
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+
+                                {/* Mobile Filter Panel Overlay */}
+                                {showFilterPanel && (
+                                    <div className={styles.mobileFilterOverlay} onClick={() => setShowFilterPanel(false)}>
+                                        <div className={styles.mobileFilterPanel} onClick={(e) => e.stopPropagation()}>
+                                            <div className={styles.mobileFilterPanelHeader}>
+                                                <h2 className={styles.mobileFilterTitle}>Filter</h2>
+                                                <button
+                                                    onClick={() => setShowFilterPanel(false)}
+                                                    className={styles.mobileFilterClose}
+                                                >
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M18 6L6 18M6 6L18 18" stroke="#545F7D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div className={styles.filterContent}>
+                                                {/* Organization */}
+                                                <div className={styles.filterField}>
+                                                    <label className={styles.filterLabel}>
+                                                        Organization
+                                                    </label>
+                                                    <select
+                                                        value={filterOrganization}
+                                                        onChange={(e) => setFilterOrganization(e.target.value)}
+                                                        className={styles.filterSelect}
+                                                    >
+                                                        <option value="">Select</option>
+                                                        {uniqueOrganizations.map((org) => (
+                                                            <option key={org} value={org}>
+                                                                {org}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                {/* Username */}
+                                                <div className={styles.filterField}>
+                                                    <label className={styles.filterLabel}>
+                                                        Username
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={filterUsername}
+                                                        onChange={(e) => setFilterUsername(e.target.value)}
+                                                        placeholder="User"
+                                                        className={styles.filterInput}
+                                                    />
+                                                </div>
+
+                                                {/* Email */}
+                                                <div className={styles.filterField}>
+                                                    <label className={styles.filterLabel}>
+                                                        Email
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={filterEmail}
+                                                        onChange={(e) => setFilterEmail(e.target.value)}
+                                                        placeholder="Email"
+                                                        className={styles.filterInput}
+                                                    />
+                                                </div>
+
+                                                {/* Date */}
+                                                <div className={styles.filterField}>
+                                                    <label className={styles.filterLabel}>
+                                                        Date
+                                                    </label>
+                                                    <div className={styles.dateInputWrapper}>
+                                                        <input
+                                                            type="date"
+                                                            value={filterDate}
+                                                            onChange={(e) => setFilterDate(e.target.value)}
+                                                            placeholder="Date"
+                                                            className={styles.dateInput}
+                                                        />
+                                                        <div className={styles.dateIcon}>
+                                                            <DateIcon />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Phone Number */}
+                                                <div className={styles.filterField}>
+                                                    <label className={styles.filterLabel}>
+                                                        Phone Number
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={filterPhone}
+                                                        onChange={(e) => setFilterPhone(e.target.value)}
+                                                        placeholder="Phone Number"
+                                                        className={styles.filterInput}
+                                                    />
+                                                </div>
+
+                                                {/* Status */}
+                                                <div className={styles.filterField}>
+                                                    <label className={styles.filterLabel}>
+                                                        Status
+                                                    </label>
+                                                    <select
+                                                        value={filterStatus}
+                                                        onChange={(e) => setFilterStatus(e.target.value)}
+                                                        className={styles.filterSelect}
+                                                    >
+                                                        <option value="">Select</option>
+                                                        {uniqueStatuses.map((status) => (
+                                                            <option key={status} value={status}>
+                                                                {status}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                {/* Action Buttons */}
+                                                <div className={styles.filterActions}>
+                                                    <button
+                                                        onClick={handleResetFilters}
+                                                        className={styles.resetButton}
+                                                    >
+                                                        Reset
+                                                    </button>
+                                                    <button
+                                                        onClick={handleApplyFilters}
+                                                        className={styles.applyButton}
+                                                    >
+                                                        Filter
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Mobile Card View */}
                                 <div className={styles.mobileCardView}>
                                     {filteredUsers.length === 0 && hasActiveFilters ? (

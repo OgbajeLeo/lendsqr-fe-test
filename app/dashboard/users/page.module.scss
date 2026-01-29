@@ -120,6 +120,243 @@
     }
 }
 
+.mobileFilterButtonContainer {
+    display: flex;
+    align-items: center;
+    padding: $spacing-4;
+    border-bottom: 1px solid $gray-200;
+
+    @media (min-width: $breakpoint-lg) {
+        display: none;
+    }
+
+    .mobileFilterButton {
+        display: flex;
+        align-items: center;
+        gap: $spacing-2;
+        padding: $spacing-2 $spacing-4;
+        background-color: white;
+        border: 1px solid $border-gray-300;
+        border-radius: $radius-md;
+        font-size: $text-sm;
+        font-weight: $font-medium;
+        color: $text-primary;
+        cursor: pointer;
+        transition: $transition-default;
+        position: relative;
+
+        &:hover {
+            background-color: $gray-100;
+        }
+
+        .filterBadge {
+            position: absolute;
+            top: -$spacing-1;
+            right: -$spacing-1;
+            background-color: $primary;
+            color: white;
+            border-radius: $radius-full;
+            width: $spacing-5;
+            height: $spacing-5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: $text-xs;
+            font-weight: $font-semibold;
+        }
+    }
+}
+
+.mobileFilterOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: $z-50;
+    display: flex;
+    align-items: flex-end;
+    animation: fadeIn 0.2s ease;
+
+    @media (min-width: $breakpoint-lg) {
+        display: none;
+    }
+}
+
+.mobileFilterPanel {
+    position: relative;
+    width: 100%;
+    max-height: 90vh;
+    background-color: white;
+    border-radius: $radius-2xl $radius-2xl 0 0;
+    padding: $spacing-6;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+    display: flex;
+    flex-direction: column;
+
+    .mobileFilterPanelHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0;
+        border-bottom: 1px solid $gray-200;
+        padding-bottom: $spacing-4;
+        margin-bottom: $spacing-4;
+        flex-shrink: 0;
+
+        .mobileFilterTitle {
+            font-size: $text-xl;
+            font-weight: $font-semibold;
+            color: $text-primary;
+            margin: 0;
+        }
+
+        .mobileFilterClose {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: $spacing-2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: $text-primary;
+            transition: $transition-default;
+
+            &:hover {
+                opacity: 0.7;
+            }
+        }
+    }
+
+    .filterContent {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-4;
+        flex: 1;
+        overflow-y: auto;
+
+        .filterField {
+            .filterLabel {
+                display: block;
+                font-size: $text-xs;
+                font-weight: $font-medium;
+                color: $text-primary;
+                margin-bottom: $spacing-2;
+            }
+
+            .filterInput,
+            .filterSelect {
+                width: 100%;
+                padding: $spacing-2 $spacing-3;
+                border: 1px solid $border-gray-300;
+                border-radius: $radius-md;
+                font-size: $text-sm;
+                color: $text-primary;
+                outline: none;
+                transition: $transition-default;
+
+                &:focus {
+                    border-color: transparent;
+                    box-shadow: 0 0 0 2px $primary;
+                }
+
+                &::placeholder {
+                    color: $gray-400;
+                }
+            }
+
+            .dateInputWrapper {
+                position: relative;
+
+                .dateInput {
+                    width: 100%;
+                    padding: $spacing-2 $spacing-3;
+                    border: 1px solid $border-gray-300;
+                    border-radius: $radius-md;
+                    font-size: $text-sm;
+                    color: $text-primary;
+                    outline: none;
+                    transition: $transition-default;
+
+                    &:focus {
+                        border-color: transparent;
+                        box-shadow: 0 0 0 2px $primary;
+                    }
+                }
+
+                .dateIcon {
+                    position: absolute;
+                    right: $spacing-4;
+                    top: $spacing-2;
+                }
+            }
+        }
+
+        .filterActions {
+            display: flex;
+            gap: $spacing-3;
+            padding-top: $spacing-2;
+            flex-shrink: 0;
+
+            .resetButton {
+                flex: 1;
+                padding: $spacing-2 $spacing-4;
+                border: 1px solid $primary;
+                color: $text-primary;
+                border-radius: $radius-md;
+                font-size: $text-sm;
+                font-weight: $font-medium;
+                background: none;
+                cursor: pointer;
+                transition: $transition-colors;
+
+                &:hover {
+                    background-color: $gray-100;
+                }
+            }
+
+            .applyButton {
+                flex: 1;
+                padding: $spacing-2 $spacing-4;
+                background-color: $primary;
+                color: white;
+                border-radius: $radius-md;
+                font-size: $text-sm;
+                font-weight: $font-medium;
+                border: none;
+                cursor: pointer;
+                transition: $transition-colors;
+
+                &:hover {
+                    background-color: #2fb3b3;
+                }
+            }
+        }
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
 .mobileCardView {
     display: flex;
     flex-direction: column;
@@ -231,6 +468,11 @@
     border: 1px solid $gray-200;
     padding: $spacing-6;
     width: 20rem; // w-80
+    display: none;
+
+    @media (min-width: $breakpoint-lg) {
+        display: block;
+    }
 
     .filterContent {
         display: flex;
